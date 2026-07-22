@@ -272,19 +272,20 @@
 <div id="hearts"></div>
 
 <div class="toolbar">
- 
+  <button id="editToggle" type="button">✏️ Редактировать</button>
 </div>
 
 <main class="card">
 
   <div class="photo-wrap" id="photoWrap">
-    <span class="photo-hint" id="photoHint"></span>
+    <img id="mainPhoto" src="photo.jpg" alt="" onerror="this.style.display='none'">
+    <span class="photo-hint" id="photoHint">Нажми, чтобы загрузить фото</span>
     <input type="file" id="photoInput" accept="image/*" class="hidden">
   </div>
 
   <div id="question">
     <p class="eyebrow" contenteditable="false" id="eyebrow">Один вопрос...</p>
-    <h1 contenteditable="false" id="title">Простишь ли ты меня дурака</h1>
+    <h1 contenteditable="false" id="title">Простишь ли ты меня дурака?</h1>
     <p class="message" contenteditable="false" id="message">
       Прости что бываю импульсивен и не думаю головой что позволяю эмоциям овладеть собой не думая о последствиях если ты ещё не спишь может поболтаем?
     </p>
@@ -296,7 +297,7 @@
   </div>
 
   <div id="success">
-    <p class="big" id="successText"> 💌</p>
+    <p class="big" id="successText">Надеюсь тебе понравилось💌</p>
 
     <div id="msgForm">
       <textarea id="msgInput" rows="3" placeholder="Напиши мне что-нибудь в ответ :)"></textarea>
@@ -404,7 +405,7 @@
 
   // ---------- отправка сообщения на почту ----------
   // Замени на свой endpoint с formspree.io (см. инструкцию под кодом)
-  const FORMSPREE_ENDPOINT = "https://formspree.io/f/ВАШ_ID"; // <-- сюда свой ID
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/maqrdnvz"; // <-- сюда свой ID
   const TARGET_EMAIL = "naitmak6508@gmail.com";
 
   function initMessageForm(){
