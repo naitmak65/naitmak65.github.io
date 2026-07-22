@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Приглашение на свидание</title>
+<style>
+  :root{
+    --cream:#FFF6F1;
+    --blush:#FFE1E9;
+    --rose:#D6336C;
+    --rose-dark:#A61E4D;
+    --gold:#F2A65A;
+    --ink:#3B2F33;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 20%, var(--blush) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, #FFD9C2 0%, transparent 40%),
+      var(--cream);
+    font-family:'Poppins', system-ui, sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;400;600&family=Caveat:wght@600;700&display=swap');
+
+  #hearts{
+    position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0;
+  }
+  .heart{
+    position:absolute; bottom:-10%; font-size:1.4rem; opacity:.55;
+    animation:rise linear infinite;
+    color:var(--rose);
+  }
+  @keyframes rise{
+    to{ transform:translateY(-120vh) rotate(25deg); opacity:0; }
+  }
+
+  .toolbar{
+    position:fixed; top:14px; right:14px; z-index:20;
+    display:flex; gap:8px;
+  }
+  .toolbar button{
+    font-family:'Poppins',sans-serif;
+    font-size:.8rem;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    opacity:.85;
+    transition:opacity .2s, transform .2s;
+  }
+  .toolbar button:hover{ opacity:1; transform:translateY(-1px); }
+  .toolbar button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  .card{
+    position:relative;
+    z-index:1;
+    width:min(420px, 92vw);
+    background:#fff;
+    border-radius:28px;
+    padding:28px 26px 34px;
+    box-shadow:0 30px 60px -20px rgba(166,30,77,.35), 0 2px 6px rgba(0,0,0,.05);
+    text-align:center;
+  }
+
+  .photo-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:20px;
+    overflow:hidden;
+    background:linear-gradient(135deg, var(--blush), #FFD9C2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    margin-bottom:18px;
+    border:2px dashed transparent;
+  }
+  body.edit-mode .photo-wrap{ border-color:var(--rose); }
+  .photo-wrap img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .photo-hint{
+    font-size:.85rem;
+    color:var(--rose-dark);
+    font-weight:600;
+    padding:0 20px;
+  }
+  body:not(.edit-mode) .photo-hint{ display:none; }
+  body:not(.edit-mode) .photo-wrap{ cursor:default; }
+
+  .eyebrow{
+    font-family:'Caveat',cursive;
+    font-size:1.3rem;
+    color:var(--rose);
+    margin:0 0 2px;
+  }
+
+  h1{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-size:1.9rem;
+    line-height:1.25;
+    margin:0 0 10px;
+    color:var(--rose-dark);
+  }
+
+  .message{
+    font-size:.98rem;
+    line-height:1.55;
+    color:var(--ink);
+    margin:0 0 26px;
+  }
+
+  [contenteditable="true"]{
+    outline:none;
+    border-radius:8px;
+  }
+  body.edit-mode [contenteditable="true"]:hover,
+  body.edit-mode [contenteditable="true"]:focus{
+    background:rgba(214,51,108,.07);
+    box-shadow:0 0 0 2px rgba(214,51,108,.25);
+  }
+
+  .buttons{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    min-height:70px;
+  }
+
+  button.choice{
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    border:none;
+    border-radius:999px;
+    padding:14px 28px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  button.choice:focus-visible{ outline:3px solid var(--gold); outline-offset:2px; }
+
+  #yesBtn{
+    background:var(--rose);
+    color:#fff;
+    box-shadow:0 10px 20px -8px rgba(214,51,108,.6);
+  }
+  #yesBtn:hover{ transform:scale(1.06); }
+
+  #noBtn{
+    background:#fff;
+    color:var(--ink);
+    border:1.5px solid #e6d9dc;
+    position:relative;
+  }
+
+  body.edit-mode #noBtn, body.edit-mode #yesBtn{
+    position:static !important;
+  }
+
+  .footnote{
+    margin-top:16px;
+    font-size:.72rem;
+    color:#b9a3a8;
+  }
+
+  /* success screen */
+  #success{
+    display:none;
+    padding:10px 0 4px;
+  }
+  #success.show{ display:block; animation:pop .4s ease; }
+  @keyframes pop{
+    from{ transform:scale(.85); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+  #success .big{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-size:2rem;
+    color:var(--rose-dark);
+  }
+
+  .hidden{ display:none !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    .heart{ animation:none; display:none; }
+    button.choice{ transition:none; }
+  }
+
+  /* ---------- mobile ---------- */
+  @media (max-width: 480px){
+    .card{
+      width:94vw;
+      padding:22px 18px 28px;
+      border-radius:22px;
+    }
+    h1{ font-size:1.55rem; }
+    .message{ font-size:.92rem; margin-bottom:20px; }
+    .eyebrow{ font-size:1.15rem; }
+    .buttons{ min-height:120px; gap:12px; }
+    button.choice{
+      font-size:.92rem;
+      padding:13px 22px;
+      touch-action:manipulation;
+    }
+    .toolbar{ top:10px; right:10px; }
+    .toolbar button{ font-size:.72rem; padding:7px 12px; }
+  }
+
+  @media (max-width: 360px){
+    h1{ font-size:1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="hearts"></div>
+
+<div class="toolbar">
+  <button id="editToggle" type="button">✏️ Редактировать</button>
+</div>
+
+<main class="card">
+
+  <div class="photo-wrap" id="photoWrap">
+    <span class="photo-hint" id="photoHint">Нажми, чтобы загрузить фото</span>
+    <input type="file" id="photoInput" accept="image/*" class="hidden">
+  </div>
+
+  <div id="question">
+    <p class="eyebrow" contenteditable="false" id="eyebrow">Один вопрос...</p>
+    <h1 contenteditable="false" id="title">Пойдёшь со мной на свидание?</h1>
+    <p class="message" contenteditable="false" id="message">
+      Я всё продумал: место, время и повод улыбнуться. Осталось только твоё «да».
+    </p>
+
+    <div class="buttons" id="buttonsWrap">
+      <button class="choice" id="yesBtn" contenteditable="false">Да, конечно!</button>
+      <button class="choice" id="noBtn" contenteditable="false">Нет</button>
+    </div>
+  </div>
+
+  <div id="success">
+    <p class="big" id="successText">Ура! Значит, договорились 💌</p>
+  </div>
+
+  <p class="footnote">сделано с любовью, специально для тебя</p>
+
+</main>
+
+<script>
+  // ---------- editable state ----------
+  function setEditMode(on){
+    document.body.classList.toggle('edit-mode', on);
+    const editables = document.querySelectorAll('#eyebrow, #title, #message, #yesBtn, #noBtn, #successText');
+    editables.forEach(el => el.setAttribute('contenteditable', on ? 'true' : 'false'));
+    document.getElementById('editToggle').textContent = on ? '✅ Готово' : '✏️ Редактировать';
+    if(!on){ resetNoButtonPosition(); }
+  }
+
+  function initEditToggle(){
+    const btn = document.getElementById('editToggle');
+    let editing = false;
+    btn.addEventListener('click', () => {
+      editing = !editing;
+      setEditMode(editing);
+    });
+  }
+
+  // ---------- photo upload ----------
+  function initPhotoUpload(){
+    const wrap = document.getElementById('photoWrap');
+    const input = document.getElementById('photoInput');
+    const hint = document.getElementById('photoHint');
+
+    wrap.addEventListener('click', () => {
+      if(document.body.classList.contains('edit-mode')) input.click();
+    });
+
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        let img = wrap.querySelector('img');
+        if(!img){
+          img = document.createElement('img');
+          wrap.insertBefore(img, hint);
+        }
+        img.src = ev.target.result;
+        hint.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- runaway "No" button ----------
+  let noScale = 1;
+  const MIN_SCALE = 0.35;
+
+  function resetNoButtonPosition(){
+    const noBtn = document.getElementById('noBtn');
+    noBtn.style.position = 'static';
+    noBtn.style.left = '';
+    noBtn.style.top = '';
+    noBtn.style.transform = '';
+    noScale = 1;
+  }
+
+  function dodge(noBtn, wrap){
+    if(document.body.classList.contains('edit-mode')) return;
+    if(noScale <= MIN_SCALE) return;
+
+    const wrapRect = wrap.getBoundingClientRect();
+    const btnRect = noBtn.getBoundingClientRect();
+
+    noScale = Math.max(MIN_SCALE, noScale - 0.09);
+
+    const maxLeft = wrapRect.width - btnRect.width;
+    const maxTop = wrapRect.height - btnRect.height + 20;
+
+    const newLeft = Math.random() * Math.max(0, maxLeft);
+    const newTop = Math.random() * Math.max(0, maxTop) - 10;
+
+    noBtn.style.position = 'absolute';
+    noBtn.style.left = newLeft + 'px';
+    noBtn.style.top = newTop + 'px';
+    noBtn.style.transform = `scale(${noScale})`;
+  }
+
+  function initNoButton(){
+    const noBtn = document.getElementById('noBtn');
+    const wrap = document.getElementById('buttonsWrap');
+    wrap.style.position = 'relative';
+
+    const trigger = () => dodge(noBtn, wrap);
+
+    noBtn.addEventListener('mouseenter', trigger);
+    noBtn.addEventListener('click', (e) => { e.preventDefault(); trigger(); });
+    noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); trigger(); }, {passive:false});
+  }
+
+  // ---------- "Yes" button ----------
+  function initYesButton(){
+    const yesBtn = document.getElementById('yesBtn');
+    yesBtn.addEventListener('click', () => {
+      if(document.body.classList.contains('edit-mode')) return;
+      document.getElementById('question').classList.add('hidden');
+      document.getElementById('success').classList.add('show');
+      launchHeartBurst();
+    });
+  }
+
+  // ---------- floating background hearts ----------
+  function initBackgroundHearts(){
+    const container = document.getElementById('hearts');
+    const symbols = ['♥','❣','💗'];
+    for(let i=0;i<14;i++){
+      const h = document.createElement('span');
+      h.className = 'heart';
+      h.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+      h.style.left = Math.random()*100 + '%';
+      h.style.animationDuration = (8 + Math.random()*10) + 's';
+      h.style.animationDelay = (Math.random()*10) + 's';
+      h.style.fontSize = (1 + Math.random()*1.4) + 'rem';
+      container.appendChild(h);
+    }
+  }
+
+  function launchHeartBurst(){
+    const container = document.getElementById('hearts');
+    for(let i=0;i<20;i++){
+      const h = document.createElement('span');
+      h.className = 'heart';
+      h.textContent = '♥';
+      h.style.left = (40 + Math.random()*20) + '%';
+      h.style.bottom = '10%';
+      h.style.animationDuration = (2 + Math.random()*2) + 's';
+      h.style.fontSize = (1 + Math.random()*1.6) + 'rem';
+      container.appendChild(h);
+      setTimeout(() => h.remove(), 4000);
+    }
+  }
+
+  // ---------- init ----------
+  function init(){
+    initEditToggle();
+    initPhotoUpload();
+    initNoButton();
+    initYesButton();
+    initBackgroundHearts();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
