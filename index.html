@@ -198,6 +198,43 @@
     color:var(--rose-dark);
   }
 
+  #msgForm{
+    margin-top:18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  #msgInput{
+    width:100%;
+    font-family:'Poppins',sans-serif;
+    font-size:.92rem;
+    padding:12px 14px;
+    border-radius:14px;
+    border:1.5px solid #e6d9dc;
+    resize:vertical;
+    min-height:70px;
+  }
+  #msgInput:focus{
+    outline:none;
+    border-color:var(--rose);
+    box-shadow:0 0 0 2px rgba(214,51,108,.2);
+  }
+  #sendMsgBtn{
+    background:var(--rose);
+    color:#fff;
+    align-self:center;
+  }
+  #sendMsgBtn:disabled{
+    opacity:.6;
+    cursor:default;
+  }
+  #sendStatus{
+    font-size:.8rem;
+    min-height:1.1em;
+    color:var(--rose-dark);
+    margin:0;
+  }
+
   .hidden{ display:none !important; }
 
   @media (prefers-reduced-motion: reduce){
@@ -235,31 +272,37 @@
 <div id="hearts"></div>
 
 <div class="toolbar">
-  <button id="editToggle" type="button">✏️ Редактировать</button>
+ 
 </div>
 
 <main class="card">
 
   <div class="photo-wrap" id="photoWrap">
-    <span class="photo-hint" id="photoHint">Нажми, чтобы загрузить фото</span>
+    <span class="photo-hint" id="photoHint"></span>
     <input type="file" id="photoInput" accept="image/*" class="hidden">
   </div>
 
   <div id="question">
     <p class="eyebrow" contenteditable="false" id="eyebrow">Один вопрос...</p>
-    <h1 contenteditable="false" id="title">Пойдёшь со мной на свидание?</h1>
+    <h1 contenteditable="false" id="title">Простишь ли ты меня дурака</h1>
     <p class="message" contenteditable="false" id="message">
-      Я всё продумал: место, время и повод улыбнуться. Осталось только твоё «да».
+      Прости что бываю импульсивен и не думаю головой что позволяю эмоциям овладеть собой не думая о последствиях если ты ещё не спишь может поболтаем?
     </p>
 
     <div class="buttons" id="buttonsWrap">
-      <button class="choice" id="yesBtn" contenteditable="false">Да, конечно!</button>
+      <button class="choice" id="yesBtn" contenteditable="false">Так и быть</button>
       <button class="choice" id="noBtn" contenteditable="false">Нет</button>
     </div>
   </div>
 
   <div id="success">
-    <p class="big" id="successText">Ура! Значит, договорились 💌</p>
+    <p class="big" id="successText"> 💌</p>
+
+    <div id="msgForm">
+      <textarea id="msgInput" rows="3" placeholder="Напиши мне что-нибудь в ответ :)"></textarea>
+      <button class="choice" id="sendMsgBtn" type="button">Отправить мне сообщение</button>
+      <p id="sendStatus" aria-live="polite"></p>
+    </div>
   </div>
 
   <p class="footnote">сделано с любовью, специально для тебя</p>
@@ -290,6 +333,11 @@
     const wrap = document.getElementById('photoWrap');
     const input = document.getElementById('photoInput');
     const hint = document.getElementById('photoHint');
+    const img = document.getElementById('mainPhoto');
+
+    if(img.style.display !== 'none' && img.complete && img.naturalWidth > 0){
+      hint.style.display = 'none';
+    }
 
     wrap.addEventListener('click', () => {
       if(document.body.classList.contains('edit-mode')) input.click();
@@ -300,12 +348,8 @@
       if(!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
-        let img = wrap.querySelector('img');
-        if(!img){
-          img = document.createElement('img');
-          wrap.insertBefore(img, hint);
-        }
         img.src = ev.target.result;
+        img.style.display = 'block';
         hint.style.display = 'none';
       };
       reader.readAsDataURL(file);
@@ -358,6 +402,55 @@
     noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); trigger(); }, {passive:false});
   }
 
+  // ---------- отправка сообщения на почту ----------
+  // Замени на свой endpoint с formspree.io (см. инструкцию под кодом)
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/ВАШ_ID"; // <-- сюда свой ID
+  const TARGET_EMAIL = "naitmak6508@gmail.com";
+
+  function initMessageForm(){
+    const btn = document.getElementById('sendMsgBtn');
+    const input = document.getElementById('msgInput');
+    const status = document.getElementById('sendStatus');
+
+    btn.addEventListener('click', () => sendMessage(input, btn, status));
+  }
+
+  async function sendMessage(input, btn, status){
+    const text = input.value.trim();
+    if(!text){
+      status.textContent = 'Напиши хоть что-нибудь :)';
+      return;
+    }
+
+    btn.disabled = true;
+    status.textContent = 'Отправляю...';
+
+    try{
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          _subject: 'Она ответила на приглашение 💌'
+        })
+      });
+
+      if(res.ok){
+        status.textContent = 'Отправлено! Он получит сообщение 💌';
+        input.value = '';
+        btn.disabled = false;
+      } else {
+        throw new Error('bad response');
+      }
+    } catch(err){
+      // фолбэк — открываем почтовый клиент с готовым письмом
+      const mailto = `mailto:${TARGET_EMAIL}?subject=${encodeURIComponent('Она ответила на приглашение 💌')}&body=${encodeURIComponent(text)}`;
+      window.location.href = mailto;
+      status.textContent = 'Открываю почту для отправки...';
+      btn.disabled = false;
+    }
+  }
+
   // ---------- "Yes" button ----------
   function initYesButton(){
     const yesBtn = document.getElementById('yesBtn');
@@ -406,6 +499,7 @@
     initPhotoUpload();
     initNoButton();
     initYesButton();
+    initMessageForm();
     initBackgroundHearts();
   }
 
