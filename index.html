@@ -17,12 +17,12 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
 
-  body{
-    min-height:100vh;
-    background:
-      radial-gradient(circle at 15% 20%, var(--blush) 0%, transparent 45%),
-      radial-gradient(circle at 85% 80%, #FFD9C2 0%, transparent 40%),
-      var(--cream);
+ body{
+  background:
+    linear-gradient(rgba(255,246,241,.75), rgba(255,246,241,.75)),
+    url("background1.jpg") center/cover no-repeat;
+  ...
+}
     font-family:'Poppins', system-ui, sans-serif;
     color:var(--ink);
     display:flex;
@@ -358,9 +358,9 @@
 
   <div id="question">
     <p class="eyebrow" contenteditable="false" id="eyebrow">Один вопрос...</p>
-    <h1 contenteditable="false" id="title"> Как насчет посмотреть на звездопад вдвоём? </h1>
+    <h1 contenteditable="false" id="title"> Как насчет посмотреть на звездопад вдвоём только ты я и пачка чипсов</h1>
     <p class="message" contenteditable="false" id="message">
-      Только ты я и пачка чипсов
+      123
     </p>
 
     <div class="buttons" id="buttonsWrap">
@@ -370,7 +370,7 @@
   </div>
 
   <div id="success">
-    <p class="big" id="successText">Как насчет 00:00?💌</p>
+    <p class="big" id="successText">Как насчет 00:00💌</p>
 
     <div id="msgForm">
       <textarea id="msgInput" rows="3" placeholder="Можешь мне что-нибудь написать! by Naitmak "></textarea>
@@ -391,7 +391,7 @@
   // не покажется.
   const PAGES = [
     { src: "photoo.jpg", caption: "" }
-    { src: "photo2.jpg", caption: "" },
+    { src: "photo2.jpg", caption: "Тот  " },
     // { src: "photos/3.jpg", caption: "" }
   ];
   // ======================================================
